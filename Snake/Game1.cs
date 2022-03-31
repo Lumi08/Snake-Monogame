@@ -263,7 +263,8 @@ namespace Snake
 		private int _score;
 		private SpriteFont _font;
 		private Vector2 _scorePosition;
-		private float _scoreRotation;
+
+		private bool _menuWaiting;
 
 		public Game1()
 		{
@@ -289,6 +290,8 @@ namespace Snake
 			_font = Content.Load<SpriteFont>("Arial");
 			_scorePosition = new Vector2(0, 0);
 
+			_menuWaiting = true;
+
 			base.Initialize();
 		}
 
@@ -304,18 +307,29 @@ namespace Snake
 			if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
 				Exit();
 
-			_snake.Update(gameTime);
 
-			if(_snake.GetPosition() == _fruit.GetPosition())
+			if(!_menuWaiting)
 			{
-				_score++;
-				_fruit.Eaten();
-				_snake.Eat();
+				_snake.Update(gameTime);
+
+				if(_snake.GetPosition() == _fruit.GetPosition())
+				{
+					_score++;
+					_fruit.Eaten();
+					_snake.Eat();
+				}
+
+				if(!_snake._isAlive)
+				{
+					ResetGame();
+				}
 			}
-
-			if(!_snake._isAlive)
+			else
 			{
-				ResetGame();
+				if(Keyboard.GetState().IsKeyDown(Keys.Enter))
+				{
+					_menuWaiting = false;
+				}
 			}
 
 
@@ -330,8 +344,16 @@ namespace Snake
 			_fruit.Draw(_spriteBatch);
 			_snake.Draw(_spriteBatch);
 
-			string scoreText = "Score: " + _score;
-			_spriteBatch.DrawString(_font, scoreText, _scorePosition, Color.White);
+			if(_menuWaiting)
+			{
+				_spriteBatch.DrawString(_font, "Press Enter To Start", new Vector2(0, 0), Color.White);
+			}
+			else
+			{
+				string scoreText = "Score: " + _score;
+				_spriteBatch.DrawString(_font, scoreText, _scorePosition, Color.White);
+			}
+
 			_spriteBatch.End();
 
 			base.Draw(gameTime);
@@ -342,6 +364,7 @@ namespace Snake
 			_score = 0;
 			_snake.Reset();
 			_fruit.Reset();
+			_menuWaiting = true;
 		}
 	}
 }
